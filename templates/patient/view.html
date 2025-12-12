@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}{{ patient.name }} - Patient Details{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Patient Details</h1>
+    <div class="header-actions">
+        {% if current_user.is_receptionist or current_user.is_admin %}
+        <a href="{{ url_for('patient.edit_patient', patient_id=patient.patient_id) }}" class="btn btn-warning">Edit Patient</a>
+        {% endif %}
+        <a href="{{ url_for('patient.list_patients') }}" class="btn btn-primary">Back to List</a>
+    </div>
+</div>
+
+<div class="patient-profile">
+    <div class="card">
+        <div class="card-header">
+            <h2>Personal Information</h2>
+        </div>
+        <div class="patient-info">
+            <div class="info-row">
+                <div class="info-label">Patient ID:</div>
+                <div class="info-value">{{ patient.patient_id }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Full Name:</div>
+                <div class="info-value">{{ patient.name }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Phone:</div>
+                <div class="info-value">{{ patient.phone }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Date of Birth:</div>
+                <div class="info-value">{{ patient.date_of_birth }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Age:</div>
+                <div class="info-value">{{ patient.age }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Address:</div>
+                <div class="info-value">{{ patient.street }}, {{ patient.city }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Previous Conditions:</div>
+                <div class="info-value">{{ patient.previous_conditions }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-sections">
+        <div class="card">
+            <div class="card-header">
+                <h2>Appointments ({{ appointments|length }})</h2>
+            </div>
+            {% if appointments %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Doctor</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                    <tr>
+                        <td>{{ appointment.date.strftime('%Y-%m-%d') }}</td>
+                        <td>Dr. {{ appointment.doctor.name }}</td>
+                        <td>{{ appointment.name }}</td>
+                        <td>{{ appointment.status }}</td>
+                        <td>
+                            <a href="{{ url_for('appointment.view_appointment', appt_id=appointment.appt_id) }}" class="btn btn-primary btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No appointments found.</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Prescriptions ({{ prescriptions|length }})</h2>
+            </div>
+            {% if prescriptions %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Prescription ID</th>
+                        <th>Doctor</th>
+                        <th>Instructions</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prescription in prescriptions %}
+                    <tr>
+                        <td>{{ prescription.script_id }}</td>
+                        <td>Dr. {{ prescription.doctor.name }}</td>
+                        <td>{{ prescription.instructions[:50] }}{% if prescription.instructions|length > 50 %}...{% endif %}</td>
+                        <td>
+                            <a href="#" class="btn btn-primary btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No prescriptions found.</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Lab Tests ({{ lab_tests|length }})</h2>
+            </div>
+            {% if lab_tests %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Test Name</th>
+                        <th>Doctor</th>
+                        <th>Result</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for test in lab_tests %}
+                    <tr>
+                        <td>{{ test.name }}</td>
+                        <td>Dr. {{ test.doctor.name }}</td>
+                        <td>{{ test.result[:30] }}{% if test.result|length > 30 %}...{% endif %}</td>
+                        <td>
+                            <a href="#" class="btn btn-primary btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No lab tests found.</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Invoices ({{ invoices|length }})</h2>
+            </div>
+            {% if invoices %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Invoice ID</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td>{{ invoice.inv_id }}</td>
+                        <td>${{ invoice.amount }}</td>
+                        <td>{{ invoice.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ invoice.status }}</td>
+                        <td>
+                            <a href="{{ url_for('billing.view_invoice', inv_id=invoice.inv_id) }}" class="btn btn-primary btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No invoices found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.patient-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    padding: 20px;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.info-label {
+    font-weight: 600;
+    width: 180px;
+    color: #555;
+}
+
+.info-value {
+    flex: 1;
+    color: #333;
+}
+
+.dashboard-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+</style>
+{% endblock %}

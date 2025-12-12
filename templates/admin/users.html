@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>User Management</h1>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>Total Users</h3>
+        <div class="number">{{ users|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Doctors</h3>
+        <div class="number">{{ doctors|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Nurses</h3>
+        <div class="number">{{ nurses|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Receptionists</h3>
+        <div class="number">{{ receptionists|length }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>All System Users</h2>
+        <div class="search-box">
+            <input type="text" id="userSearch" class="form-control" placeholder="Search users..." onkeyup="searchUsers()">
+        </div>
+    </div>
+
+    <table class="table" id="usersTable">
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Name</th>
+                <th>Details</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr data-username="{{ user.username|lower }}" data-role="{{ user.role|lower }}" data-name="{{ user.name|lower if user.name else '' }}">
+                <td>{{ user.user_id }}</td>
+                <td>{{ user.username }}</td>
+                <td>
+                    <span class="role-badge role-{{ user.role }}">
+                        {{ user.role|title }}
+                    </span>
+                </td>
+                <td>
+                    {% if user.role == 'doctor' and user.doctor %}
+                        Dr. {{ user.doctor.name }}
+                    {% elif user.role == 'nurse' and user.nurse %}
+                        {{ user.nurse.name }}
+                    {% elif user.role == 'receptionist' and user.receptionist %}
+                        {{ user.receptionist.name }}
+                    {% elif user.role == 'admin' %}
+                        Administrator
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.role == 'doctor' and user.doctor %}
+                        {{ user.doctor.specialty }}
+                        {% if user.doctor.department %}
+                            ({{ user.doctor.department.name }})
+                        {% endif %}
+                    {% elif user.role == 'nurse' and user.nurse %}
+                        Nurse
+                    {% elif user.role == 'receptionist' and user.receptionist %}
+                        Receptionist
+                    {% elif user.role == 'admin' %}
+                        System Administrator
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.role != 'admin' or users|length > 1 %}
+                    <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.user_id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="dashboard-sections">
+    <div class="card">
+        <div class="card-header">
+            <h2>Doctors</h2>
+        </div>
+        {% if doctors %}
+        <div class="users-list">
+            {% for doctor in doctors %}
+            <div class="user-card">
+                <div class="user-avatar">👨‍⚕️</div>
+                <div class="user-info">
+                    <div class="user-name">Dr. {{ doctor.name }}</div>
+                    <div class="user-details">{{ doctor.specialty }}</div>
+                    <div class="user-department">{{ doctor.department.name if doctor.department else 'No Department' }}</div>
+                </div>
+                <div class="user-actions">
+                    <span class="user-username">{{ doctor.user.username }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No doctors registered.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Nurses</h2>
+        </div>
+        {% if nurses %}
+        <div class="users-list">
+            {% for nurse in nurses %}
+            <div class="user-card">
+                <div class="user-avatar">👩‍⚕️</div>
+                <div class="user-info">
+                    <div class="user-name">{{ nurse.name }}</div>
+                    <div class="user-details">Nurse</div>
+                </div>
+                <div class="user-actions">
+                    <span class="user-username">{{ nurse.user.username }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No nurses registered.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Receptionists</h2>
+        </div>
+        {% if receptionists %}
+        <div class="users-list">
+            {% for receptionist in receptionists %}
+            <div class="user-card">
+                <div class="user-avatar">💼</div>
+                <div class="user-info">
+                    <div class="user-name">{{ receptionist.name }}</div>
+                    <div class="user-details">Receptionist</div>
+                </div>
+                <div class="user-actions">
+                    <span class="user-username">{{ receptionist.user.username }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No receptionists registered.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.role-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.role-doctor {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.role-nurse {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.role-receptionist {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.role-admin {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.users-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.user-card {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.user-card:last-child {
+    border-bottom: none;
+}
+
+.user-avatar {
+    font-size: 1.5rem;
+    margin-right: 15px;
+    width: 40px;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.user-details {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 3px;
+}
+
+.user-department {
+    font-size: 0.85rem;
+    color: #17a2b8;
+    font-style: italic;
+}
+
+.user-username {
+    font-size: 0.85rem;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.search-box {
+    margin-bottom: 15px;
+    max-width: 300px;
+}
+</style>
+
+<script>
+function searchUsers() {
+    const input = document.getElementById('userSearch');
+    const filter = input.value.toLowerCase();
+    const rows = document.getElementById('usersTable').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let row of rows) {
+        const username = row.getAttribute('data-username');
+        const role = row.getAttribute('data-role');
+        const name = row.getAttribute('data-name');
+        
+        if (username.includes(filter) || role.includes(filter) || name.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+</script>
+{% endblock %}

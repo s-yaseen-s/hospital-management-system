@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Administrator Dashboard</h1>
+    <p>System Overview and Management</p>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>Total Patients</h3>
+        <div class="number">{{ total_patients }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Doctors</h3>
+        <div class="number">{{ total_doctors }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Today's Appointments</h3>
+        <div class="number">{{ today_appointments }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Invoices</h3>
+        <div class="number">{{ total_invoices }}</div>
+    </div>
+</div>
+
+<div class="dashboard-sections">
+    <div class="card">
+        <div class="card-header">
+            <h2>System Statistics</h2>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-label">Pending Invoices</div>
+                <div class="stat-value">{{ pending_invoices }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Paid Invoices</div>
+                <div class="stat-value">{{ paid_invoices }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Total Appointments</div>
+                <div class="stat-value">{{ total_appointments }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Quick Actions</h2>
+        </div>
+        <div class="quick-actions">
+            <a href="{{ url_for('admin.users') }}" class="btn btn-primary">
+                <span class="action-icon">👥</span>
+                <span class="action-text">Manage Users</span>
+            </a>
+            
+            <a href="{{ url_for('admin.departments') }}" class="btn btn-success">
+                <span class="action-icon">🏢</span>
+                <span class="action-text">Departments</span>
+            </a>
+            
+            <a href="{{ url_for('admin.reports') }}" class="btn btn-warning">
+                <span class="action-icon">📊</span>
+                <span class="action-text">View Reports</span>
+            </a>
+            
+            <a href="{{ url_for('patient.list_patients') }}" class="btn btn-info">
+                <span class="action-icon">👨‍⚕️</span>
+                <span class="action-text">All Patients</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Recent System Activity</h2>
+        <a href="{{ url_for('admin.reports') }}" class="btn btn-primary">View Full Reports</a>
+    </div>
+    
+    <div class="activity-list">
+        <div class="activity-item">
+            <div class="activity-icon">📅</div>
+            <div class="activity-content">
+                <div class="activity-title">Appointments Today</div>
+                <div class="activity-desc">{{ today_appointments }} appointments scheduled for today</div>
+            </div>
+        </div>
+        
+        <div class="activity-item">
+            <div class="activity-icon">💰</div>
+            <div class="activity-content">
+                <div class="activity-title">Billing Status</div>
+                <div class="activity-desc">{{ pending_invoices }} pending invoices, {{ paid_invoices }} paid</div>
+            </div>
+        </div>
+        
+        <div class="activity-item">
+            <div class="activity-icon">👥</div>
+            <div class="activity-content">
+                <div class="activity-title">User Activity</div>
+                <div class="activity-desc">{{ total_doctors }} doctors, {{ total_patients }} patients in system</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Add New User</h2>
+    </div>
+    
+    <form method="POST" action="{{ url_for('admin.add_user') }}">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="Enter username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Enter password" required>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="role">Role:</label>
+                <select id="role" name="role" class="form-control" required onchange="toggleFields()">
+                    <option value="">Select role...</option>
+                    <option value="doctor">Doctor</option>
+                    <option value="nurse">Nurse</option>
+                    <option value="receptionist">Receptionist</option>
+                    <option value="admin">Administrator</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="name">Full Name:</label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="Enter full name" required>
+            </div>
+        </div>
+        
+        <div id="doctorFields" style="display: none;">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="specialty">Specialty:</label>
+                    <input type="text" id="specialty" name="specialty" class="form-control" placeholder="e.g., Cardiology">
+                </div>
+                <div class="form-group">
+                    <label for="dept_id">Department:</label>
+                    <select id="dept_id" name="dept_id" class="form-control">
+                        <option value="">Select department...</option>
+                        <option value="1">Cardiology</option>
+                        <option value="2">Pediatrics</option>
+                        <option value="3">Orthopedics</option>
+                        <option value="4">Neurology</option>
+                        <option value="5">Emergency</option>
+                        <option value="6">General Surgery</option>
+                        <option value="7">Oncology</option>
+                        <option value="8">Radiology</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <button type="submit" class="btn btn-success btn-block">Add User</button>
+        </div>
+    </form>
+</div>
+
+<style>
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 20px;
+}
+
+.quick-actions a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.quick-actions a:hover {
+    transform: translateY(-3px);
+}
+
+.action-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.action-text {
+    font-weight: 500;
+}
+
+.activity-list {
+    padding: 20px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    font-size: 1.5rem;
+    margin-right: 15px;
+    width: 40px;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.activity-desc {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+</style>
+
+<script>
+function toggleFields() {
+    const role = document.getElementById('role').value;
+    const doctorFields = document.getElementById('doctorFields');
+    
+    if (role === 'doctor') {
+        doctorFields.style.display = 'block';
+    } else {
+        doctorFields.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

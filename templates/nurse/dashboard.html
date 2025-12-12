@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Nurse Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Nurse Dashboard</h1>
+    <p>Welcome, {{ nurse.name }}</p>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>Total Patients</h3>
+        <div class="number">{{ patients|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Available Beds</h3>
+        <div class="number">{{ available_beds }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Occupied Beds</h3>
+        <div class="number">{{ occupied_beds }}</div>
+    </div>
+</div>
+
+<div class="dashboard-sections">
+    <div class="card">
+        <div class="card-header">
+            <h2>Recent Patients</h2>
+            <a href="{{ url_for('nurse.patients') }}" class="btn btn-primary">View All</a>
+        </div>
+        
+        {% if patients %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Patient ID</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Conditions</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients[:5] %}
+                <tr>
+                    <td>{{ patient.patient_id }}</td>
+                    <td>{{ patient.name }}</td>
+                    <td>{{ patient.age }}</td>
+                    <td>{{ patient.previous_conditions[:30] }}{% if patient.previous_conditions|length > 30 %}...{% endif %}</td>
+                    <td>
+                        <a href="{{ url_for('nurse.patient_vitals', patient_id=patient.patient_id) }}" class="btn btn-primary btn-sm">Record Vitals</a>
+                        <a href="{{ url_for('patient.view_patient', patient_id=patient.patient_id) }}" class="btn btn-info btn-sm">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No patients found.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Quick Actions</h2>
+        </div>
+        <div class="action-buttons">
+            <a href="{{ url_for('nurse.patients') }}" class="btn btn-primary">Manage Patients</a>
+            <a href="{{ url_for('nurse.beds') }}" class="btn btn-success">Bed Management</a>
+            <a href="{{ url_for('nurse.patient_vitals', patient_id=1) }}" class="btn btn-warning">Record Vitals</a>
+        </div>
+        
+        <div class="quick-forms">
+            <h3>Record Patient Vitals</h3>
+            <form action="{{ url_for('nurse.patient_vitals', patient_id=0) }}" method="GET" class="inline-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patient_select">Select Patient:</label>
+                        <select id="patient_select" name="patient_id" class="form-control" required onchange="this.form.action='{{ url_for('nurse.patient_vitals', patient_id=0) }}'.replace('0', this.value)">
+                            <option value="">Choose patient...</option>
+                            {% for patient in patients %}
+                            <option value="{{ patient.patient_id }}">{{ patient.name }} (ID: {{ patient.patient_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" style="margin-top: 25px;">Go to Vitals</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.quick-forms {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.quick-forms h3 {
+    margin-bottom: 15px;
+    color: #495057;
+}
+
+.inline-form {
+    margin-top: 10px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+</style>
+{% endblock %}

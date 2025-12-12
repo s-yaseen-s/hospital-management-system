@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Bed Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Bed Management</h1>
+    <p>Manage hospital beds and patient assignments</p>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>Total Beds</h3>
+        <div class="number">{{ beds|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Available</h3>
+        {% set available = beds|selectattr('status', 'equalto', 'Available')|list %}
+        <div class="number" style="color: #28a745;">{{ available|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Occupied</h3>
+        {% set occupied = beds|selectattr('status', 'equalto', 'Occupied')|list %}
+        <div class="number" style="color: #dc3545;">{{ occupied|length }}</div>
+    </div>
+</div>
+
+<div class="dashboard-sections">
+    <div class="card">
+        <div class="card-header">
+            <h2>Bed Assignment Form</h2>
+        </div>
+        
+        <form method="POST" action="{{ url_for('nurse.assign_bed') }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="patient_id">Select Patient:</label>
+                    <select id="patient_id" name="patient_id" class="form-control" required>
+                        <option value="">Choose patient...</option>
+                        {% for patient in patients %}
+                        <option value="{{ patient.patient_id }}">{{ patient.name }} (ID: {{ patient.patient_id }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="bed_no">Select Available Bed:</label>
+                    <select id="bed_no" name="bed_no" class="form-control" required>
+                        <option value="">Choose bed...</option>
+                        {% for bed in beds if bed.status == 'Available' %}
+                        <option value="{{ bed.bed_no }}">Room {{ bed.room_no }}, Bed {{ bed.bed_no }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-success btn-block">Assign Bed to Patient</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Current Bed Assignments</h2>
+        </div>
+        
+        {% if assignments %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Bed Number</th>
+                    <th>Room</th>
+                    <th>Patient</th>
+                    <th>Start Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in assignments %}
+                <tr>
+                    <td>{{ assignment.bed_no }}</td>
+                    <td>Room {{ assignment.bed.room_no }}</td>
+                    <td>{{ assignment.patient.name }} (ID: {{ assignment.patient_id }})</td>
+                    <td>{{ assignment.start_date }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('nurse.vacate_bed', bed_no=assignment.bed_no) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to vacate this bed?')">Vacate Bed</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No active bed assignments.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>All Beds Status</h2>
+    </div>
+    
+    <div class="beds-grid">
+        {% for bed in beds|sort(attribute='room_no') %}
+        <div class="bed-card bed-status-{{ bed.status|lower }}">
+            <div class="bed-number">Bed {{ bed.bed_no }}</div>
+            <div class="room-number">Room {{ bed.room_no }}</div>
+            <div class="bed-status">{{ bed.status }}</div>
+            {% if bed.status == 'Occupied' %}
+                {% set assignment = assignments|selectattr('bed_no', 'equalto', bed.bed_no)|first %}
+                {% if assignment %}
+                <div class="patient-info">
+                    <strong>Patient:</strong> {{ assignment.patient.name }}
+                </div>
+                <div class="patient-info">
+                    <strong>Since:</strong> {{ assignment.start_date }}
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.beds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    padding: 20px;
+}
+
+.bed-card {
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    background-color: white;
+}
+
+.bed-status-available {
+    border-left: 4px solid #28a745;
+}
+
+.bed-status-occupied {
+    border-left: 4px solid #dc3545;
+}
+
+.bed-number {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #495057;
+}
+
+.room-number {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.bed-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.bed-status-available .bed-status {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.bed-status-occupied .bed-status {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.patient-info {
+    font-size: 0.85rem;
+    color: #495057;
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px dashed #dee2e6;
+}
+</style>
+{% endblock %}

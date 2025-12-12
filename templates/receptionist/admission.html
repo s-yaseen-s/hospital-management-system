@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Admission{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Patient Admission</h1>
+    <a href="{{ url_for('receptionist.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+
+<div class="dashboard-sections">
+    <div class="card">
+        <div class="card-header">
+            <h2>New Patient Registration</h2>
+        </div>
+        
+        <form method="POST" action="{{ url_for('patient.add_patient') }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Enter patient's full name" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <input type="tel" id="phone" name="phone" class="form-control" placeholder="Enter phone number" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="date_of_birth">Date of Birth:</label>
+                    <input type="date" id="date_of_birth" name="date_of_birth" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="age">Age:</label>
+                    <input type="number" id="age" name="age" class="form-control" placeholder="Enter age" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="street">Street Address:</label>
+                    <input type="text" id="street" name="street" class="form-control" placeholder="Enter street address" required>
+                </div>
+                <div class="form-group">
+                    <label for="city">City:</label>
+                    <input type="text" id="city" name="city" class="form-control" placeholder="Enter city" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="previous_conditions">Medical History / Previous Conditions:</label>
+                <textarea id="previous_conditions" name="previous_conditions" class="form-control" rows="3" placeholder="Enter any known medical conditions, allergies, or previous illnesses"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-success btn-block">Register Patient</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Existing Patients</h2>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="patientSearch" class="form-control" placeholder="Search patients by name..." onkeyup="searchPatients()">
+        </div>
+        
+        <div class="patients-list" id="patientsList">
+            {% for patient in patients %}
+            <div class="patient-item" data-name="{{ patient.name|lower }}">
+                <div class="patient-info">
+                    <strong>{{ patient.name }}</strong>
+                    <div class="patient-details">
+                        ID: {{ patient.patient_id }} | Age: {{ patient.age }} | Phone: {{ patient.phone }}
+                    </div>
+                    <div class="patient-conditions">
+                        {{ patient.previous_conditions[:50] }}{% if patient.previous_conditions|length > 50 %}...{% endif %}
+                    </div>
+                </div>
+                <div class="patient-actions">
+                    <a href="{{ url_for('patient.view_patient', patient_id=patient.patient_id) }}" class="btn btn-primary btn-sm">View</a>
+                    <a href="{{ url_for('receptionist.appointments') }}" class="btn btn-success btn-sm">Schedule</a>
+                    <a href="#create-invoice" class="btn btn-warning btn-sm">Bill</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Admission Statistics</h2>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-label">Total Patients Registered</div>
+            <div class="stat-value">{{ patients|length }}</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Patients Today</div>
+            <div class="stat-value">{{ patients|selectattr('date_of_birth', 'none')|list|length }}</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Average Age</div>
+            <div class="stat-value">
+                {% set ages = patients|map(attribute='age')|list %}
+                {% if ages %}
+                    {{ (ages|sum / ages|length)|round(1) }}
+                {% else %}
+                    0
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.patients-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 15px;
+}
+
+.patient-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+    transition: background-color 0.2s;
+}
+
+.patient-item:hover {
+    background-color: #f8f9fa;
+}
+
+.patient-info {
+    flex: 1;
+}
+
+.patient-details {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin: 5px 0;
+}
+
+.patient-conditions {
+    font-size: 0.9rem;
+    color: #495057;
+    font-style: italic;
+}
+
+.patient-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.search-box {
+    margin-bottom: 15px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+</style>
+
+<script>
+function searchPatients() {
+    const input = document.getElementById('patientSearch');
+    const filter = input.value.toLowerCase();
+    const items = document.getElementsByClassName('patient-item');
+    
+    for (let item of items) {
+        const name = item.getAttribute('data-name');
+        if (name.includes(filter)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    }
+}
+</script>
+{% endblock %}

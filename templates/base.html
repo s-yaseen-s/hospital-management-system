@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management System - {% block title %}Home{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+</head>
+<body>
+    <div class="header">
+        <div class="navbar">
+            <a href="{{ url_for('index') }}" class="logo">Hospital Management System</a>
+            <ul class="nav-links">
+                {% if current_user.is_authenticated %}
+                    <li>Welcome, {{ current_user.username }} ({{ current_user.role }})</li>
+                    <li><a href="{{ url_for('index') }}">Dashboard</a></li>
+                    {% if current_user.is_admin %}
+                        <li><a href="{{ url_for('admin.users') }}">Users</a></li>
+                        <li><a href="{{ url_for('admin.reports') }}">Reports</a></li>
+                    {% elif current_user.is_doctor %}
+                        <li><a href="{{ url_for('doctor.appointments') }}">Appointments</a></li>
+                        <li><a href="{{ url_for('doctor.patients') }}">Patients</a></li>
+                    {% elif current_user.is_nurse %}
+                        <li><a href="{{ url_for('nurse.patients') }}">Patients</a></li>
+                        <li><a href="{{ url_for('nurse.beds') }}">Beds</a></li>
+                    {% elif current_user.is_receptionist %}
+                        <li><a href="{{ url_for('receptionist.appointments') }}">Appointments</a></li>
+                        <li><a href="{{ url_for('receptionist.billing') }}">Billing</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Hospital Management System. CSAI 202 - Database Systems Project.</p>
+    </footer>
+</body>
+</html>

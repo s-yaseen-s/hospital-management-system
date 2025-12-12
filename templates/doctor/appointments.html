@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Appointments{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>My Appointments</h1>
+    <p>Dr. {{ doctor.name }} - {{ doctor.specialty }}</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Appointment Schedule</h2>
+        <div class="header-actions">
+            <a href="{{ url_for('appointment.today_appointments') }}" class="btn btn-primary">Today's Appointments</a>
+        </div>
+    </div>
+
+    {% if appointments %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Patient</th>
+                <th>Appointment Type</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in appointments %}
+            <tr>
+                <td>{{ appointment.date.strftime('%Y-%m-%d %I:%M %p') }}</td>
+                <td>{{ appointment.patient.name }}</td>
+                <td>{{ appointment.name }}</td>
+                <td>
+                    <span class="status-badge status-{{ appointment.status|lower }}">
+                        {{ appointment.status }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('appointment.view_appointment', appt_id=appointment.appt_id) }}" class="btn btn-primary btn-sm">View</a>
+                    <a href="{{ url_for('doctor.view_patient', patient_id=appointment.patient_id) }}" class="btn btn-info btn-sm">Patient</a>
+                    {% if appointment.status == 'Scheduled' %}
+                    <form action="{{ url_for('appointment.update_status', appt_id=appointment.appt_id) }}" method="POST" style="display: inline;">
+                        <input type="hidden" name="status" value="Completed">
+                        <button type="submit" class="btn btn-success btn-sm">Complete</button>
+                    </form>
+                    <form action="{{ url_for('appointment.update_status', appt_id=appointment.appt_id) }}" method="POST" style="display: inline;">
+                        <input type="hidden" name="status" value="Cancelled">
+                        <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>No appointments found.</p>
+        <a href="{{ url_for('appointment.schedule') }}" class="btn btn-primary">View Schedule</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-scheduled {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.empty-state p {
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Nurse - Patients{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Patients Management</h1>
+    <p>Nurse: {{ nurse.name }}</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>All Patients</h2>
+        <div class="search-box">
+            <form method="GET" class="search-form">
+                <input type="text" name="search" placeholder="Search patients..." class="form-control" value="{{ request.args.get('search', '') }}">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+    </div>
+
+    {% if patients %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Age</th>
+                <th>Conditions</th>
+                <th>Last Vitals</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients %}
+            <tr>
+                <td>{{ patient.patient_id }}</td>
+                <td>{{ patient.name }}</td>
+                <td>{{ patient.phone }}</td>
+                <td>{{ patient.age }}</td>
+                <td>{{ patient.previous_conditions[:30] }}{% if patient.previous_conditions|length > 30 %}...{% endif %}</td>
+                <td>
+                    {% if patient.medical_record and patient.medical_record.nurse_updates %}
+                        {{ patient.medical_record.nurse_updates[-1].date.strftime('%Y-%m-%d') if patient.medical_record.nurse_updates else 'No record' }}
+                    {% else %}
+                        No record
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('nurse.patient_vitals', patient_id=patient.patient_id) }}" class="btn btn-primary btn-sm">Record Vitals</a>
+                    <a href="{{ url_for('patient.view_patient', patient_id=patient.patient_id) }}" class="btn btn-info btn-sm">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>No patients found.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

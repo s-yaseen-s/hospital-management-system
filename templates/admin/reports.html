@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}System Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>System Reports & Analytics</h1>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Generate Report</h2>
+    </div>
+    
+    <form method="GET" action="{{ url_for('admin.reports') }}">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="start_date">Start Date:</label>
+                <input type="date" id="start_date" name="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="form-group">
+                <label for="end_date">End Date:</label>
+                <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <button type="submit" class="btn btn-success">Generate Report</button>
+            <a href="{{ url_for('admin.reports') }}" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>Total Revenue</h3>
+        <div class="number" style="color: #28a745;">${{ "%.2f"|format(total_revenue) }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Appointments</h3>
+        <div class="number">{{ appointments|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Invoices</h3>
+        <div class="number">{{ invoices|length }}</div>
+    </div>
+</div>
+
+<div class="dashboard-sections">
+    <div class="card">
+        <div class="card-header">
+            <h2>Appointments Report</h2>
+            <span>Period: {{ start_date }} to {{ end_date }}</span>
+        </div>
+        
+        {% if appointments %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Receptionist</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments %}
+                <tr>
+                    <td>{{ appointment.date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ appointment.patient.name }}</td>
+                    <td>Dr. {{ appointment.doctor.name }}</td>
+                    <td>{{ appointment.name }}</td>
+                    <td>{{ appointment.status }}</td>
+                    <td>{{ appointment.receptionist.name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No appointments in this period.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Financial Report</h2>
+        </div>
+        
+        {% if invoices %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Invoice ID</th>
+                    <th>Date</th>
+                    <th>Patient</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Receptionist</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                    <td>{{ invoice.inv_id }}</td>
+                    <td>{{ invoice.date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ invoice.patient.name }}</td>
+                    <td>${{ invoice.amount }}</td>
+                    <td>{{ invoice.status }}</td>
+                    <td>{{ invoice.receptionist.name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="report-summary">
+            <div class="summary-item">
+                <strong>Total Invoices:</strong> {{ invoices|length }}
+            </div>
+            <div class="summary-item">
+                <strong>Total Amount:</strong> ${{ "%.2f"|format(invoices|map(attribute='amount')|sum) }}
+            </div>
+            <div class="summary-item">
+                <strong>Paid Amount:</strong> ${{ "%.2f"|format(invoices|selectattr('status', 'equalto', 'Paid')|map(attribute='amount')|sum) }}
+            </div>
+            <div class="summary-item">
+                <strong>Pending Amount:</strong> ${{ "%.2f"|format(invoices|selectattr('status', 'equalto', 'Pending')|map(attribute='amount')|sum) }}
+            </div>
+        </div>
+        {% else %}
+        <p>No invoices in this period.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Doctor Performance</h2>
+    </div>
+    
+    {% if doctor_stats %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Doctor</th>
+                <th>Specialty</th>
+                <th>Department</th>
+                <th>Appointments</th>
+                <th>Performance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in doctor_stats %}
+            <tr>
+                <td>Dr. {{ stat.doctor.name }}</td>
+                <td>{{ stat.doctor.specialty }}</td>
+                <td>{{ stat.doctor.department.name if stat.doctor.department else 'N/A' }}</td>
+                <td>{{ stat.appointments }}</td>
+                <td>
+                    {% if stat.appointments > 20 %}
+                    <span class="performance-high">Excellent</span>
+                    {% elif stat.appointments > 10 %}
+                    <span class="performance-medium">Good</span>
+                    {% else %}
+                    <span class="performance-low">Average</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No doctor statistics available.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Export Reports</h2>
+    </div>
+    
+    <div class="export-options">
+        <button class="btn btn-primary" onclick="printReport()">
+            <span class="export-icon">🖨️</span>
+            Print Report
+        </button>
+        
+        <button class="btn btn-success" onclick="exportToCSV()">
+            <span class="export-icon">📊</span>
+            Export as CSV
+        </button>
+        
+        <button class="btn btn-warning" onclick="exportSummary()">
+            <span class="export-icon">📋</span>
+            Export Summary
+        </button>
+    </div>
+</div>
+
+<style>
+.report-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.summary-item {
+    padding: 15px;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+    text-align: center;
+}
+
+.performance-high {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.performance-medium {
+    color: #ffc107;
+    font-weight: 600;
+}
+
+.performance-low {
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.export-options {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    flex-wrap: wrap;
+}
+
+.export-options button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 25px;
+    font-size: 1rem;
+}
+
+.export-icon {
+    font-size: 1.2rem;
+}
+</style>
+
+<script>
+function printReport() {
+    window.print();
+}
+
+function exportToCSV() {
+    alert('CSV export feature would be implemented here. This is a demo.');
+}
+
+function exportSummary() {
+    alert('Summary export feature would be implemented here. This is a demo.');
+}
+</script>
+{% endblock %}

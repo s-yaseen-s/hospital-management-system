@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">⚠️</div>
+        <h1 class="error-title">Oops! Something went wrong</h1>
+        
+        <div class="error-message">
+            <p>{{ message }}</p>
+        </div>
+        
+        <div class="error-details">
+            <p>If this error persists, please contact the system administrator.</p>
+        </div>
+        
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Go to Home</a>
+            <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
+            
+            {% if current_user.is_authenticated %}
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-success">Admin Dashboard</a>
+                {% elif current_user.is_doctor %}
+                <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-success">Doctor Dashboard</a>
+                {% elif current_user.is_nurse %}
+                <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-success">Nurse Dashboard</a>
+                {% elif current_user.is_receptionist %}
+                <a href="{{ url_for('receptionist.dashboard') }}" class="btn btn-success">Receptionist Dashboard</a>
+                {% endif %}
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-warning">Login</a>
+            {% endif %}
+        </div>
+        
+        <div class="error-help">
+            <p><strong>Need help?</strong> Contact support at: support@hospital-system.com</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+    padding: 20px;
+}
+
+.error-card {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.error-title {
+    color: #dc3545;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+
+.error-message {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    border-left: 4px solid #dc3545;
+}
+
+.error-message p {
+    font-size: 1.1rem;
+    color: #495057;
+    margin: 0;
+}
+
+.error-details {
+    color: #6c757d;
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+}
+
+.error-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.error-help {
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %} 

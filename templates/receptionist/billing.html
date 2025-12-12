@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Billing Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Billing & Invoicing</h1>
+    <a href="{{ url_for('receptionist.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>Total Invoices</h3>
+        <div class="number">{{ invoices|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Pending Amount</h3>
+        {% set pending_total = invoices|selectattr('status', 'equalto', 'Pending')|map(attribute='amount')|sum %}
+        <div class="number" style="color: #dc3545;">${{ "%.2f"|format(pending_total) }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Paid Amount</h3>
+        {% set paid_total = invoices|selectattr('status', 'equalto', 'Paid')|map(attribute='amount')|sum %}
+        <div class="number" style="color: #28a745;">${{ "%.2f"|format(paid_total) }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>All Invoices</h2>
+        <div class="header-actions">
+            <a href="#create-invoice" class="btn btn-success">Create New Invoice</a>
+        </div>
+    </div>
+
+    {% if invoices %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Invoice ID</th>
+                <th>Date</th>
+                <th>Patient</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Created By</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td>{{ invoice.inv_id }}</td>
+                <td>{{ invoice.date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ invoice.patient.name }}</td>
+                <td>${{ invoice.amount }}</td>
+                <td>
+                    <span class="status-badge status-{{ invoice.status|lower }}">
+                        {{ invoice.status }}
+                    </span>
+                </td>
+                <td>{{ invoice.receptionist.name }}</td>
+                <td>
+                    <a href="{{ url_for('billing.view_invoice', inv_id=invoice.inv_id) }}" class="btn btn-primary btn-sm">View</a>
+                    {% if invoice.status != 'Paid' %}
+                    <button type="button" class="btn btn-success btn-sm" onclick="showPaymentModal({{ invoice.inv_id }}, {{ invoice.amount }})">Add Payment</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>No invoices found.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card" id="create-invoice">
+    <div class="card-header">
+        <h2>Create New Invoice</h2>
+    </div>
+    
+    <form method="POST" action="{{ url_for('receptionist.add_invoice') }}">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="patient_id">Select Patient:</label>
+                <select id="patient_id" name="patient_id" class="form-control" required>
+                    <option value="">Choose patient...</option>
+                    {% for patient in patients %}
+                    <option value="{{ patient.patient_id }}">{{ patient.name }} (ID: {{ patient.patient_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount ($):</label>
+                <input type="number" step="0.01" id="amount" name="amount" class="form-control" placeholder="0.00" required>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" class="form-control" rows="3" placeholder="Enter services rendered, medications, procedures, etc."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <button type="submit" class="btn btn-success btn-block">Create Invoice</button>
+        </div>
+    </form>
+</div>
+
+<!-- Payment Modal -->
+<div id="paymentModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Record Payment</h2>
+        <form id="paymentForm" method="POST">
+            <div class="form-group">
+                <label for="payment_amount">Payment Amount ($):</label>
+                <input type="number" step="0.01" id="payment_amount" name="amount" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="payment_method">Payment Method:</label>
+                <select id="payment_method" name="method" class="form-control">
+                    <option value="Cash">Cash</option>
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Insurance">Insurance</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-success btn-block">Record Payment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-paid {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-partial {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.close:hover {
+    color: #000;
+}
+</style>
+
+<script>
+let currentInvoiceId = null;
+
+function showPaymentModal(invoiceId, invoiceAmount) {
+    currentInvoiceId = invoiceId;
+    document.getElementById('payment_amount').value = invoiceAmount;
+    document.getElementById('payment_amount').max = invoiceAmount;
+    
+    const modal = document.getElementById('paymentModal');
+    modal.style.display = 'flex';
+    
+    const form = document.getElementById('paymentForm');
+    form.action = `/billing/${invoiceId}/payment`;
+}
+
+function closeModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+    currentInvoiceId = null;
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('paymentModal');
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+</script>
+{% endblock %}

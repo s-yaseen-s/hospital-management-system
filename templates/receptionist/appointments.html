@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Appointments Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Appointments Management</h1>
+    <a href="{{ url_for('receptionist.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>All Appointments</h2>
+        <div class="header-actions">
+            <a href="#schedule-form" class="btn btn-success">Schedule New Appointment</a>
+            <a href="{{ url_for('appointment.today_appointments') }}" class="btn btn-primary">Today's Appointments</a>
+        </div>
+    </div>
+
+    {% if appointments %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Appointment ID</th>
+                <th>Date & Time</th>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Scheduled By</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in appointments %}
+            <tr>
+                <td>{{ appointment.appt_id }}</td>
+                <td>{{ appointment.date.strftime('%Y-%m-%d %I:%M %p') }}</td>
+                <td>{{ appointment.patient.name }}</td>
+                <td>Dr. {{ appointment.doctor.name }}</td>
+                <td>{{ appointment.name }}</td>
+                <td>
+                    <span class="status-badge status-{{ appointment.status|lower }}">
+                        {{ appointment.status }}
+                    </span>
+                </td>
+                <td>{{ appointment.receptionist.name }}</td>
+                <td>
+                    <a href="{{ url_for('appointment.view_appointment', appt_id=appointment.appt_id) }}" class="btn btn-primary btn-sm">View</a>
+                    {% if appointment.status == 'Scheduled' %}
+                    <form action="{{ url_for('receptionist.cancel_appointment', appt_id=appointment.appt_id) }}" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Cancel this appointment?')">Cancel</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>No appointments found.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card" id="schedule-form">
+    <div class="card-header">
+        <h2>Schedule New Appointment</h2>
+    </div>
+    
+    <form method="POST" action="{{ url_for('receptionist.add_appointment') }}">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="patient_id">Select Patient:</label>
+                <select id="patient_id" name="patient_id" class="form-control" required>
+                    <option value="">Choose patient...</option>
+                    {% for patient in patients %}
+                    <option value="{{ patient.patient_id }}">{{ patient.name }} (ID: {{ patient.patient_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="doc_id">Select Doctor:</label>
+                <select id="doc_id" name="doc_id" class="form-control" required>
+                    <option value="">Choose doctor...</option>
+                    {% for doctor in doctors %}
+                    <option value="{{ doctor.doc_id }}">Dr. {{ doctor.name }} ({{ doctor.specialty }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="date">Date & Time:</label>
+                <input type="datetime-local" id="date" name="date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="name">Appointment Type:</label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="e.g., Regular Checkup, Consultation, Follow-up" required>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <button type="submit" class="btn btn-success btn-block">Schedule Appointment</button>
+        </div>
+    </form>
+</div>
+
+<style>
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-scheduled {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+</style>
+{% endblock %}

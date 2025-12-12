@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Doctor Dashboard</h1>
+    <p>Welcome, Dr. {{ doctor.name }} ({{ doctor.specialty }})</p>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>Today's Appointments</h3>
+        <div class="number">{{ appointments|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Patients</h3>
+        <div class="number">{{ doctor.appointments|groupby('patient_id')|list|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Pending Prescriptions</h3>
+        <div class="number">{{ prescriptions|length }}</div>
+    </div>
+</div>
+
+<div class="dashboard-sections">
+    <div class="card">
+        <div class="card-header">
+            <h2>Today's Appointments</h2>
+            <a href="{{ url_for('doctor.appointments') }}" class="btn btn-primary">View All</a>
+        </div>
+        
+        {% if appointments %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Patient</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments %}
+                <tr>
+                    <td>{{ appointment.date.strftime('%I:%M %p') }}</td>
+                    <td>{{ appointment.patient.name }}</td>
+                    <td>{{ appointment.name }}</td>
+                    <td>{{ appointment.status }}</td>
+                    <td>
+                        <a href="{{ url_for('appointment.view_appointment', appt_id=appointment.appt_id) }}" class="btn btn-primary btn-sm">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No appointments scheduled for today.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Recent Prescriptions</h2>
+            <a href="{{ url_for('doctor.new_prescription') }}" class="btn btn-success">New Prescription</a>
+        </div>
+        
+        {% if prescriptions %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Date</th>
+                    <th>Instructions</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prescription in prescriptions %}
+                <tr>
+                    <td>{{ prescription.patient.name }}</td>
+                    <td>{{ prescription.script_id }}</td>
+                    <td>{{ prescription.instructions[:50] }}{% if prescription.instructions|length > 50 %}...{% endif %}</td>
+                    <td>
+                        <a href="#" class="btn btn-primary btn-sm">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No recent prescriptions.</p>
+        {% endif %}
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('doctor.patients') }}" class="btn btn-primary">Manage Patients</a>
+        <a href="{{ url_for('doctor.appointments') }}" class="btn btn-success">View Appointments</a>
+        <a href="{{ url_for('doctor.new_prescription') }}" class="btn btn-warning">Write Prescription</a>
+    </div>
+</div>
+{% endblock %}
