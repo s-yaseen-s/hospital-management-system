@@ -1,8 +1,3 @@
--- Sample Data for Hospital Management System
--- Based on the entities and relationships from Design-phaseDB.docx
-
--- Insert User Accounts (passwords are 'password123' hashed)
--- Note: In production, use proper hashing. Here we'll use a simple hash for demo
 INSERT INTO User_Account (username, password, role) VALUES
 ('admin', 'pbkdf2:sha256:260000$N73Nk0xI3V4lR6jW$3a9f8c7b6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f', 'admin'),
 ('drsmith', 'pbkdf2:sha256:260000$N73Nk0xI3V4lR6jW$3a9f8c7b6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f', 'doctor'),
@@ -12,22 +7,18 @@ INSERT INTO User_Account (username, password, role) VALUES
 ('nursebrown', 'pbkdf2:sha256:260000$N73Nk0xI3V4lR6jW$3a9f8c7b6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f', 'nurse'),
 ('reception', 'pbkdf2:sha256:260000$N73Nk0xI3V4lR6jW$3a9f8c7b6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f', 'receptionist');
 
--- Insert Doctors (matching Design-phaseDB.docx entities)
 INSERT INTO Doctor (name, specialty, dept_id, user_id) VALUES
 ('Dr. John Smith', 'Cardiologist', 1, 2),
 ('Dr. Sarah Jones', 'Pediatrician', 2, 3),
 ('Dr. Robert Brown', 'Orthopedic Surgeon', 3, 4);
 
--- Insert Nurses (matching Design-phaseDB.docx entities)
 INSERT INTO Nurse (name, user_id) VALUES
 ('Nurse Alice Jones', 5),
 ('Nurse Bob Brown', 6);
 
--- Insert Receptionist (matching Design-phaseDB.docx entities)
 INSERT INTO Receptionist (name, user_id) VALUES
 ('Receptionist Mary Wilson', 7);
 
--- Insert Patients (matching Design-phaseDB.docx entities)
 INSERT INTO Patient (name, phone, date_of_birth, age, previous_conditions, street, city) VALUES
 ('John Doe', '555-0101', '1980-05-15', 43, 'Hypertension, Diabetes', '123 Main St', 'New York'),
 ('Jane Smith', '555-0102', '1992-08-22', 31, 'Asthma', '456 Oak Ave', 'New York'),
@@ -38,7 +29,6 @@ INSERT INTO Patient (name, phone, date_of_birth, age, previous_conditions, stree
 ('David Taylor', '555-0107', '1965-02-14', 58, 'Arthritis, Hypertension', '741 Cedar Blvd', 'Staten Island'),
 ('Lisa Anderson', '555-0108', '1982-09-03', 41, 'Diabetes', '852 Spruce Way', 'New York');
 
--- Insert Appointments (matching relationships from Design-phaseDB.docx)
 INSERT INTO Appointment (name, status, date, patient_id, doc_id, rec_id) VALUES
 ('Regular Checkup', 'Completed', '2024-01-15 09:00:00', 1, 1, 1),
 ('Follow-up Visit', 'Scheduled', '2024-01-20 10:30:00', 2, 2, 1),
@@ -49,10 +39,8 @@ INSERT INTO Appointment (name, status, date, patient_id, doc_id, rec_id) VALUES
 ('Post-surgery Follow-up', 'Scheduled', '2024-01-19 15:00:00', 7, 3, 1),
 ('Emergency Visit', 'Completed', '2024-01-14 17:00:00', 8, 2, 1);
 
--- Insert Medical Records (1:1 with Patient as per Design-phaseDB.docx)
 INSERT INTO Medical_Record (patient_id) VALUES (1), (2), (3), (4), (5), (6), (7), (8);
 
--- Insert Doctor Updates to Records (M:M relationship)
 INSERT INTO Doctor_Updates_Record (doc_id, record_id, notes, date) VALUES
 (1, 1, 'Patient shows improved blood pressure. Continue current medication.', '2024-01-15 10:00:00'),
 (1, 3, 'Patient complains of chest pain. Ordered ECG test.', '2024-01-18 14:30:00'),
@@ -60,14 +48,12 @@ INSERT INTO Doctor_Updates_Record (doc_id, record_id, notes, date) VALUES
 (2, 4, 'Allergy symptoms seasonal. Prescribed antihistamines.', '2024-01-10 12:00:00'),
 (3, 7, 'Post-surgery recovery progressing well. Physical therapy recommended.', '2024-01-19 15:30:00');
 
--- Insert Nurse Updates to Records (M:M relationship)
 INSERT INTO Nurse_Updates_Record (nurse_id, record_id, notes, date) VALUES
 (1, 1, 'BP: 130/85, Pulse: 72, Temp: 98.6°F', '2024-01-15 09:30:00'),
 (1, 2, 'BP: 120/80, Pulse: 68, Temp: 98.4°F', '2024-01-20 10:45:00'),
 (2, 3, 'BP: 140/90, Pulse: 76, Temp: 99.1°F', '2024-01-18 14:15:00'),
 (2, 4, 'BP: 110/70, Pulse: 70, Temp: 98.2°F', '2024-01-10 11:30:00');
 
--- Insert Medications
 INSERT INTO Medication (name, dosage, frequency, instructions) VALUES
 ('Lisinopril', '10mg', 'Once daily', 'Take with water in the morning'),
 ('Metformin', '500mg', 'Twice daily', 'Take with meals'),
@@ -78,7 +64,6 @@ INSERT INTO Medication (name, dosage, frequency, instructions) VALUES
 ('Atorvastatin', '20mg', 'Once daily', 'Take at bedtime'),
 ('Levothyroxine', '50mcg', 'Once daily', 'Take on empty stomach');
 
--- Insert Prescriptions (from Doctor to Patient as per relationships)
 INSERT INTO Prescription (instructions, patient_id, doc_id, appt_id) VALUES
 ('Take Lisinopril daily for blood pressure control.', 1, 1, 1),
 ('Use Albuterol inhaler as needed for asthma symptoms.', 2, 2, 2),
@@ -86,7 +71,6 @@ INSERT INTO Prescription (instructions, patient_id, doc_id, appt_id) VALUES
 ('Take Ibuprofen for pain management as needed.', 7, 3, 7),
 ('Complete full course of Amoxicillin for infection.', 8, 2, 8);
 
--- Insert Prescription_Medication (M:M relationship)
 INSERT INTO Prescription_Medication (script_id, med_id) VALUES
 (1, 1), -- Prescription 1 includes Lisinopril
 (1, 2), -- Prescription 1 also includes Metformin
@@ -95,7 +79,6 @@ INSERT INTO Prescription_Medication (script_id, med_id) VALUES
 (4, 5), -- Prescription 4 includes Ibuprofen
 (5, 6); -- Prescription 5 includes Amoxicillin
 
--- Insert Lab Tests
 INSERT INTO Lab_Test (name, result, patient_id, doc_id) VALUES
 ('Complete Blood Count', 'Normal ranges', 1, 1),
 ('ECG', 'Normal sinus rhythm', 3, 1),
@@ -103,7 +86,6 @@ INSERT INTO Lab_Test (name, result, patient_id, doc_id) VALUES
 ('Allergy Panel', 'Positive for pollen, dust mites', 4, 2),
 ('X-Ray Right Knee', 'Healing fracture, no displacement', 7, 3);
 
--- Insert Invoices
 INSERT INTO Invoice (amount, status, patient_id, rec_id, date) VALUES
 (150.00, 'Paid', 1, 1, '2024-01-15 11:00:00'),
 (200.00, 'Pending', 2, 1, '2024-01-20 11:30:00'),
@@ -111,12 +93,10 @@ INSERT INTO Invoice (amount, status, patient_id, rec_id, date) VALUES
 (100.00, 'Paid', 4, 1, '2024-01-10 12:30:00'),
 (500.00, 'Pending', 7, 1, '2024-01-19 16:00:00');
 
--- Insert Payments
 INSERT INTO Payment (amount, date, inv_id) VALUES
 (150.00, '2024-01-15 12:00:00', 1),
 (100.00, '2024-01-10 13:00:00', 4);
 
--- Insert Room_Bed (Rooms and Beds)
 INSERT INTO Room_Bed (room_no, status) VALUES
 (101, 'Available'),
 (101, 'Occupied'),
@@ -129,7 +109,6 @@ INSERT INTO Room_Bed (room_no, status) VALUES
 (202, 'Occupied'),
 (202, 'Available');
 
--- Insert Patient_Bed_Assignment
 INSERT INTO Patient_Bed_Assignment (patient_id, bed_no, start_date, end_date) VALUES
 (1, 2, '2024-01-14', '2024-01-16'),
 (7, 5, '2024-01-18', NULL),

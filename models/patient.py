@@ -17,4 +17,3 @@ class Patient(db.Model):
     prescriptions = db.relationship('Prescription', backref='patient', lazy=True)
     lab_tests = db.relationship('LabTest', backref='patient', lazy=True)
     invoices = db.relationship('Invoice', backref='patient', lazy=True)
-    bed_assignments = db.relationship('PatientBedAssignment', backref='patient', lazy=True)

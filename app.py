@@ -9,6 +9,9 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
+    # Force SQLite database
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hospital.db'
+    
     db.init_app(app)
     
     login_manager = LoginManager()

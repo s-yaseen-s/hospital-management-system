@@ -1,8 +1,14 @@
 import os
+from pathlib import Path
+
+# Get the base directory
+basedir = Path(__file__).parent.absolute()
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'mssql+pymssql://sa:YourPassword@localhost/HospitalDB'
+    
+    # SQLite configuration for development
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or f'sqlite:///{os.path.join(basedir, "hospital.db")}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     ROLES = {
