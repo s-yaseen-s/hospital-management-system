@@ -47,7 +47,7 @@
                     <td>{{ patient.patient_id }}</td>
                     <td>{{ patient.name }}</td>
                     <td>{{ patient.age }}</td>
-                    <td>{{ patient.previous_conditions[:30] }}{% if patient.previous_conditions|length > 30 %}...{% endif %}</td>
+                    <td>{{ patient.previous_conditions[:30] if patient.previous_conditions else 'None' }}{% if patient.previous_conditions and patient.previous_conditions|length > 30 %}...{% endif %}</td>
                     <td>
                         <a href="{{ url_for('nurse.patient_vitals', patient_id=patient.patient_id) }}" class="btn btn-primary btn-sm">Record Vitals</a>
                         <a href="{{ url_for('patient.view_patient', patient_id=patient.patient_id) }}" class="btn btn-info btn-sm">View</a>
@@ -77,7 +77,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="patient_select">Select Patient:</label>
-                        <select id="patient_select" name="patient_id" class="form-control" required onchange="this.form.action='{{ url_for('nurse.patient_vitals', patient_id=0) }}'.replace('0', this.value)">
+                        <select id="patient_select" name="patient_id" class="form-control" required onchange="updateFormAction(this)">
                             <option value="">Choose patient...</option>
                             {% for patient in patients %}
                             <option value="{{ patient.patient_id }}">{{ patient.name }} (ID: {{ patient.patient_id }})</option>
@@ -117,4 +117,14 @@
     flex-wrap: wrap;
 }
 </style>
+
+<script>
+function updateFormAction(selectElement) {
+    const baseUrl = "{{ url_for('nurse.patient_vitals', patient_id=0) }}";
+    const selectedPatientId = selectElement.value;
+    if (selectedPatientId) {
+        selectElement.form.action = baseUrl.replace('0', selectedPatientId);
+    }
+}
+</script>
 {% endblock %}

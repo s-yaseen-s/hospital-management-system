@@ -39,7 +39,7 @@
                 <td>{{ patient.name }}</td>
                 <td>{{ patient.phone }}</td>
                 <td>{{ patient.age }}</td>
-                <td>{{ patient.previous_conditions[:30] }}{% if patient.previous_conditions|length > 30 %}...{% endif %}</td>
+                <td>{{ patient.previous_conditions[:30] if patient.previous_conditions else 'None' }}{% if patient.previous_conditions and patient.previous_conditions|length > 30 %}...{% endif %}</td>
                 <td>{{ patient.city }}</td>
                 <td>
                     <a href="{{ url_for('patient.view_patient', patient_id=patient.patient_id) }}" class="btn btn-primary btn-sm">View</a>

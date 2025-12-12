@@ -39,7 +39,7 @@
                 <td>{{ patient.name }}</td>
                 <td>{{ patient.phone }}</td>
                 <td>{{ patient.age }}</td>
-                <td>{{ patient.previous_conditions[:30] }}{% if patient.previous_conditions|length > 30 %}...{% endif %}</td>
+                <td>{{ patient.previous_conditions[:30] if patient.previous_conditions else 'None' }}{% if patient.previous_conditions and patient.previous_conditions|length > 30 %}...{% endif %}</td>
                 <td>
                     {% if patient.medical_record and patient.medical_record.nurse_updates %}
                         {{ patient.medical_record.nurse_updates[-1].date.strftime('%Y-%m-%d') if patient.medical_record.nurse_updates else 'No record' }}

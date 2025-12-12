@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Patient Dashboard</h1>
+    <p>Welcome, {{ patient.name }}</p>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>Total Appointments</h3>
+        <div class="number">{{ appointments|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Upcoming Appointments</h3>
+        <div class="number">{{ upcoming_appointments|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Prescriptions</h3>
+        <div class="number">{{ prescriptions|length }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Lab Tests</h3>
+        <div class="number">{{ lab_tests|length }}</div>
+    </div>
+</div>
+
+<div class="dashboard-sections">
+    <div class="card">
+        <div class="card-header">
+            <h2>Upcoming Appointments</h2>
+            <a href="{{ url_for('patient.appointments') }}" class="btn btn-primary">View All</a>
+        </div>
+        
+        {% if upcoming_appointments %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Doctor</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in upcoming_appointments[:3] %}
+                <tr>
+                    <td>{{ appointment.date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>Dr. {{ appointment.doctor.name }}</td>
+                    <td>{{ appointment.name }}</td>
+                    <td>
+                        <span class="badge badge-{{ 
+                            'success' if appointment.status == 'Completed' 
+                            else 'warning' if appointment.status == 'Scheduled' 
+                            else 'danger' }}">
+                            {{ appointment.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No upcoming appointments scheduled.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Recent Prescriptions</h2>
+            <a href="{{ url_for('patient.prescriptions') }}" class="btn btn-info">View All</a>
+        </div>
+        
+        {% if prescriptions %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Doctor</th>
+                    <th>Instructions</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prescription in prescriptions[:3] %}
+                <tr>
+                    <td>{{ prescription.date.strftime('%Y-%m-%d') if prescription.date else 'N/A' }}</td>
+                    <td>Dr. {{ prescription.doctor.name }}</td>
+                    <td>{{ prescription.instructions[:50] }}{% if prescription.instructions|length > 50 %}...{% endif %}</td>
+                    <td>
+                        <span class="badge badge-primary">Active</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No prescriptions found.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Patient Information</h2>
+        </div>
+        
+        <div class="patient-info-grid">
+            <div class="info-item">
+                <label>Patient ID:</label>
+                <span>{{ patient.patient_id }}</span>
+            </div>
+            <div class="info-item">
+                <label>Full Name:</label>
+                <span>{{ patient.name }}</span>
+            </div>
+            <div class="info-item">
+                <label>Age:</label>
+                <span>{{ patient.age }}</span>
+            </div>
+            <div class="info-item">
+                <label>Phone:</label>
+                <span>{{ patient.phone }}</span>
+            </div>
+            <div class="info-item">
+                <label>Date of Birth:</label>
+                <span>{{ patient.date_of_birth }}</span>
+            </div>
+            <div class="info-item">
+                <label>Address:</label>
+                <span>{{ patient.street }}, {{ patient.city }}</span>
+            </div>
+            <div class="info-item">
+                <label>Previous Conditions:</label>
+                <span>{{ patient.previous_conditions or 'None' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Quick Actions</h2>
+        </div>
+        <div class="action-buttons">
+            <a href="{{ url_for('patient.book_appointment') }}" class="btn btn-primary">
+                <i class="fas fa-calendar-plus"></i> Book Appointment
+            </a>
+            <a href="{{ url_for('patient.view_medical_record') }}" class="btn btn-info">
+                <i class="fas fa-file-medical"></i> Medical Record
+            </a>
+            <a href="{{ url_for('patient.prescriptions') }}" class="btn btn-success">
+                <i class="fas fa-prescription"></i> Prescriptions
+            </a>
+            <a href="{{ url_for('patient.lab_tests') }}" class="btn btn-warning">
+                <i class="fas fa-vial"></i> Lab Tests
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Recent Lab Tests</h2>
+            <a href="{{ url_for('patient.lab_tests') }}" class="btn btn-info">View All</a>
+        </div>
+        
+        {% if lab_tests %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Test Name</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in lab_tests[:3] %}
+                <tr>
+                    <td>{{ test.name }}</td>
+                    <td>{{ test.date.strftime('%Y-%m-%d') if test.date else 'N/A' }}</td>
+                    <td>
+                        <span class="badge badge-{{ 
+                            'success' if test.status == 'Completed' 
+                            else 'warning' if test.status == 'Pending'
+                            else 'info' }}">
+                            {{ test.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if test.result %}
+                            <button class="btn btn-sm btn-primary">View</button>
+                        {% else %}
+                            <span class="text-muted">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No lab tests found.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.patient-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    padding: 20px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.info-item label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.info-item span {
+    color: #2c3e50;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    flex-wrap: wrap;
+}
+
+.action-buttons a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    color: white;
+    font-weight: 500;
+    transition: transform 0.2s;
+}
+
+.action-buttons a:hover {
+    transform: translateY(-2px);
+    color: white;
+}
+
+.action-buttons a.btn-primary {
+    background-color: #007bff;
+}
+
+.action-buttons a.btn-info {
+    background-color: #17a2b8;
+}
+
+.action-buttons a.btn-success {
+    background-color: #28a745;
+}
+
+.action-buttons a.btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+</style>
+{% endblock %}

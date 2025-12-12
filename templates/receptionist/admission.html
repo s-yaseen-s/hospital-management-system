@@ -77,7 +77,7 @@
                         ID: {{ patient.patient_id }} | Age: {{ patient.age }} | Phone: {{ patient.phone }}
                     </div>
                     <div class="patient-conditions">
-                        {{ patient.previous_conditions[:50] }}{% if patient.previous_conditions|length > 50 %}...{% endif %}
+                        {{ patient.previous_conditions[:50] if patient.previous_conditions else 'None' }}{% if patient.previous_conditions and patient.previous_conditions|length > 50 %}...{% endif %}
                     </div>
                 </div>
                 <div class="patient-actions">

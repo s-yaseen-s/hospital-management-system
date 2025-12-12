@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Patient - {{ patient.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Edit Patient Information</h2>
+                <div>
+                    <a href="{{ url_for('patient.view_patient', patient_id=patient.patient_id) }}" class="btn btn-info">
+                        <i class="fas fa-eye"></i> View Patient
+                    </a>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h4>Patient Information</h4>
+                    <p class="text-muted mb-0">Patient ID: {{ patient.patient_id }}</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('patient.edit_patient', patient_id=patient.patient_id) }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Full Name *</label>
+                                    <input type="text" class="form-control" id="name" name="name" required
+                                           value="{{ patient.name }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="phone">Phone Number *</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" required
+                                           value="{{ patient.phone }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="age">Age *</label>
+                                    <input type="number" class="form-control" id="age" name="age" required
+                                           min="0" max="150" value="{{ patient.age }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="date_of_birth">Date of Birth</label>
+                                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth"
+                                           value="{{ patient.date_of_birth }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="blood_type">Blood Type</label>
+                                    <select class="form-control" id="blood_type" name="blood_type">
+                                        <option value="">Select Blood Type</option>
+                                        <option value="A+" {{ 'selected' if patient.blood_type == 'A+' }}>A+</option>
+                                        <option value="A-" {{ 'selected' if patient.blood_type == 'A-' }}>A-</option>
+                                        <option value="B+" {{ 'selected' if patient.blood_type == 'B+' }}>B+</option>
+                                        <option value="B-" {{ 'selected' if patient.blood_type == 'B-' }}>B-</option>
+                                        <option value="AB+" {{ 'selected' if patient.blood_type == 'AB+' }}>AB+</option>
+                                        <option value="AB-" {{ 'selected' if patient.blood_type == 'AB-' }}>AB-</option>
+                                        <option value="O+" {{ 'selected' if patient.blood_type == 'O+' }}>O+</option>
+                                        <option value="O-" {{ 'selected' if patient.blood_type == 'O-' }}>O-</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="street">Street Address</label>
+                                    <input type="text" class="form-control" id="street" name="street"
+                                           value="{{ patient.street }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="city">City</label>
+                                    <input type="text" class="form-control" id="city" name="city"
+                                           value="{{ patient.city }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="state">State/Province</label>
+                                    <input type="text" class="form-control" id="state" name="state"
+                                           value="{{ patient.state }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="postal_code">Postal Code</label>
+                                    <input type="text" class="form-control" id="postal_code" name="postal_code"
+                                           value="{{ patient.postal_code }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           value="{{ patient.email }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="previous_conditions">Previous Medical Conditions</label>
+                                    <textarea class="form-control" id="previous_conditions" name="previous_conditions"
+                                              rows="3">{{ patient.previous_conditions }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="emergency_contact">Emergency Contact</label>
+                                    <input type="text" class="form-control" id="emergency_contact" name="emergency_contact"
+                                           value="{{ patient.emergency_contact }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="insurance_provider">Insurance Provider</label>
+                                    <input type="text" class="form-control" id="insurance_provider" name="insurance_provider"
+                                           value="{{ patient.insurance_provider }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="insurance_policy">Policy Number</label>
+                                    <input type="text" class="form-control" id="insurance_policy" name="insurance_policy"
+                                           value="{{ patient.insurance_policy }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5>Medical Record Information</h5>
+                        {% if patient.medical_record %}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="medical_notes">Medical Notes</label>
+                                    <textarea class="form-control" id="medical_notes" name="medical_notes"
+                                              rows="4">{{ patient.medical_record.notes }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Patient
+                            </button>
+                            <a href="{{ url_for('patient.view_patient', patient_id=patient.patient_id) }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Patient History Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4>Patient History</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Recent Appointments</h6>
+                            {% if patient.appointments %}
+                            <ul class="list-unstyled">
+                                {% for apt in patient.appointments[:5] %}
+                                <li class="mb-2">
+                                    <strong>{{ apt.date.strftime('%Y-%m-%d') }}</strong> - 
+                                    {{ apt.name }} with Dr. {{ apt.doctor.name }}
+                                    <span class="badge badge-{{ 
+                                        'success' if apt.status == 'Completed' 
+                                        else 'warning' if apt.status == 'Scheduled'
+                                        else 'secondary' }}">
+                                        {{ apt.status }}
+                                    </span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <p class="text-muted">No appointments found</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Recent Prescriptions</h6>
+                            {% if patient.prescriptions %}
+                            <ul class="list-unstyled">
+                                {% for script in patient.prescriptions[:5] %}
+                                <li class="mb-2">
+                                    <strong>{{ script.date.strftime('%Y-%m-%d') }}</strong> - 
+                                    {{ script.instructions[:50] }}{% if script.instructions|length > 50 %}...{% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <p class="text-muted">No prescriptions found</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-calculate age from date of birth
+    const dateOfBirthInput = document.getElementById('date_of_birth');
+    const ageInput = document.getElementById('age');
+    
+    dateOfBirthInput.addEventListener('change', function() {
+        const dob = new Date(this.value);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const monthDiff = today.getMonth() - dob.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        
+        if (age >= 0 && age <= 150) {
+            ageInput.value = age;
+        }
+    });
+    
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const phone = document.getElementById('phone').value;
+        const name = document.getElementById('name').value;
+        
+        // Basic phone validation
+        if (phone.length < 10) {
+            e.preventDefault();
+            alert('Please enter a valid phone number (at least 10 digits)');
+            document.getElementById('phone').focus();
+            return;
+        }
+        
+        // Basic name validation
+        if (name.trim().length < 2) {
+            e.preventDefault();
+            alert('Please enter a valid name (at least 2 characters)');
+            document.getElementById('name').focus();
+            return;
+        }
+        
+        // Confirm update
+        if (!confirm('Are you sure you want to update this patient\'s information?')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+
+<style>
+.card {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+hr {
+    border-color: #e9ecef;
+    margin: 30px 0;
+}
+
+h5 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+h6 {
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}Lab Tests Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Lab Tests Management</h2>
+                <div>
+                    <button class="btn btn-primary" data-toggle="modal" data-target="#addLabTestModal">
+                        <i class="fas fa-plus"></i> Order New Test
+                    </button>
+                    <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Lab Test Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Tests</h5>
+                            <h3 class="text-primary">{{ lab_tests|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Pending</h5>
+                            <h3 class="text-warning">{{ lab_tests|selectattr('status', 'equalto', 'Pending')|list|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Completed</h5>
+                            <h3 class="text-success">{{ lab_tests|selectattr('status', 'equalto', 'Completed')|list|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">This Week</h5>
+                            <h3 class="text-info">{{ lab_tests|selectattr('date', 'greaterthan', week_ago)|list|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filter Options -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <select class="form-control" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-control" id="patientFilter">
+                                <option value="">All Patients</option>
+                                {% for patient in patients %}
+                                <option value="{{ patient.patient_id }}">{{ patient.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" id="dateFilter">
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-info btn-block" onclick="filterLabTests()">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lab Tests Table -->
+            {% if lab_tests %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Test ID</th>
+                            <th>Patient</th>
+                            <th>Test Name</th>
+                            <th>Type</th>
+                            <th>Date Ordered</th>
+                            <th>Status</th>
+                            <th>Result</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for test in lab_tests %}
+                        <tr>
+                            <td>#{{ test.test_id }}</td>
+                            <td>
+                                {% if test.patient %}
+                                    {{ test.patient.name }}
+                                {% else %}
+                                    Patient #{{ test.patient_id }}
+                                {% endif %}
+                            </td>
+                            <td>{{ test.name }}</td>
+                            <td>
+                                <span class="badge badge-info">{{ test.type }}</span>
+                            </td>
+                            <td>{{ test.date.strftime('%Y-%m-%d') if test.date else 'N/A' }}</td>
+                            <td>
+                                <span class="badge badge-{{ 
+                                    'warning' if test.status == 'Pending' 
+                                    else 'info' if test.status == 'In Progress'
+                                    else 'success' if test.status == 'Completed'
+                                    else 'danger' if test.status == 'Cancelled'
+                                    else 'secondary' }}">
+                                    {{ test.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if test.result %}
+                                    <button class="btn btn-sm btn-info" onclick="viewResult('{{ test.test_id }}')">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                {% else %}
+                                    <span class="text-muted">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-primary view-btn" data-test-id="{{ test.test_id }}">
+                                    <i class="fas fa-eye"></i> Details
+                                </button>
+                                {% if test.status == 'Pending' %}
+                                <button class="btn btn-sm btn-warning edit-btn" data-test-id="{{ test.test_id }}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                {% endif %}
+                                {% if test.status == 'Completed' %}
+                                <button class="btn btn-sm btn-success" onclick="downloadResult('{{ test.test_id }}')">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                No lab tests found. Order your first lab test using the "Order New Test" button.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Lab Test Modal -->
+<div class="modal fade" id="addLabTestModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Order New Lab Test</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('doctor.add_lab_test') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="patient_id">Patient:</label>
+                                <select name="patient_id" id="patient_id" class="form-control" required>
+                                    <option value="">Select Patient</option>
+                                    {% for patient in patients %}
+                                    <option value="{{ patient.patient_id }}">{{ patient.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="test_type">Test Type:</label>
+                                <select name="test_type" id="test_type" class="form-control" required>
+                                    <option value="">Select Test Type</option>
+                                    <option value="Blood Test">Blood Test</option>
+                                    <option value="Urine Test">Urine Test</option>
+                                    <option value="X-Ray">X-Ray</option>
+                                    <option value="MRI">MRI</option>
+                                    <option value="CT Scan">CT Scan</option>
+                                    <option value="Ultrasound">Ultrasound</option>
+                                    <option value="ECG">ECG</option>
+                                    <option value="Biopsy">Biopsy</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="test_name">Test Name:</label>
+                        <input type="text" name="test_name" id="test_name" class="form-control" 
+                               placeholder="e.g., Complete Blood Count, Chest X-Ray" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description/Instructions:</label>
+                        <textarea name="description" id="description" class="form-control" rows="3" 
+                                  placeholder="Enter specific instructions or notes for the lab technician"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="urgency">Urgency:</label>
+                        <select name="urgency" id="urgency" class="form-control">
+                            <option value="Routine">Routine</option>
+                            <option value="Urgent">Urgent</option>
+                            <option value="Stat">Stat (Immediate)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Order Test</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Lab Test Details Modal -->
+<div class="modal fade" id="viewLabTestModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Lab Test Details</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="labTestDetails">
+                    <!-- Lab test details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners for view buttons
+    document.querySelectorAll('.view-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            viewLabTestDetails(this.getAttribute('data-test-id'));
+        });
+    });
+    
+    // Add event listeners for edit buttons
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            editLabTest(this.getAttribute('data-test-id'));
+        });
+    });
+});
+
+function filterLabTests() {
+    const status = document.getElementById('statusFilter').value;
+    const patient = document.getElementById('patientFilter').value;
+    const date = document.getElementById('dateFilter').value;
+    
+    // Build URL with filters
+    let url = window.location.pathname;
+    let params = new URLSearchParams();
+    
+    if (status) params.append('status', status);
+    if (patient) params.append('patient', patient);
+    if (date) params.append('date', date);
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+    
+    window.location.href = url;
+}
+
+function viewLabTestDetails(testId) {
+    // Load lab test details via AJAX or redirect
+    window.location.href = `/doctor/lab-tests/${testId}`;
+}
+
+function editLabTest(testId) {
+    // Redirect to edit page
+    window.location.href = `/doctor/lab-tests/${testId}/edit`;
+}
+
+function viewResult(testId) {
+    // View lab test result
+    window.location.href = `/doctor/lab-tests/${testId}/result`;
+}
+
+function downloadResult(testId) {
+    // Download lab test result
+    window.location.href = `/doctor/lab-tests/${testId}/download`;
+}
+</script>
+{% endblock %}
