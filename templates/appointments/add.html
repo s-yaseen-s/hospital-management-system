@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Add Appointment{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Add New Appointment</h2>
+                <a href="{{ url_for('appointment.schedule') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Appointments
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Appointment Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('appointment.add_appointment') }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="patient_id">Patient *</label>
+                                    <select name="patient_id" id="patient_id" class="form-control" required>
+                                        <option value="">Select Patient</option>
+                                        {% for patient in patients %}
+                                        <option value="{{ patient.patient_id }}">{{ patient.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="doc_id">Doctor *</label>
+                                    <select name="doc_id" id="doc_id" class="form-control" required>
+                                        <option value="">Select Doctor</option>
+                                        {% for doctor in doctors %}
+                                        <option value="{{ doctor.doc_id }}">{{ doctor.name }} ({{ doctor.specialty }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">Appointment Type *</label>
+                                    <input type="text" name="name" id="name" class="form-control" 
+                                           placeholder="e.g., Regular Checkup, Follow-up Visit" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="date">Date & Time *</label>
+                                    <input type="datetime-local" name="date" id="date" class="form-control" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-calendar-plus"></i> Schedule Appointment
+                            </button>
+                            <a href="{{ url_for('appointment.schedule') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Instructions -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Instructions</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>Select a patient from the dropdown list</li>
+                        <li>Choose the appropriate doctor for the appointment</li>
+                        <li>Enter a descriptive name for the appointment type</li>
+                        <li>Select the date and time for the appointment</li>
+                        <li>Click "Schedule Appointment" to create the appointment</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set minimum date to today
+    const dateInput = document.getElementById('date');
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    dateInput.min = `${year}-${month}-${day}T${hours}:${minutes}`;
+    
+    // Set default value to current time rounded to next hour
+    const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
+    const defaultHours = String(nextHour.getHours()).padStart(2, '0');
+    dateInput.value = `${year}-${month}-${day}T${defaultHours}:00`;
+});
+</script>
+{% endblock %}

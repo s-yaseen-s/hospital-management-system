@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Appointment Schedule{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Appointment Schedule</h2>
+                {% if current_user.role == 'receptionist' %}
+                <a href="{{ url_for('appointment.add_appointment') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Appointment
+                </a>
+                {% endif %}
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            
+            <!-- Filter Options -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <select class="form-control" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" id="dateFilter">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-control" id="doctorFilter">
+                                <option value="">All Doctors</option>
+                                {% if doctors %}
+                                    {% for doctor in doctors %}
+                                    <option value="{{ doctor.doc_id }}">{{ doctor.name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-info btn-block" onclick="filterAppointments()">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Appointments Table -->
+            {% if appointments %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            {% if current_user.role != 'doctor' %}
+                            <th>Doctor</th>
+                            {% endif %}
+                            <th>Patient</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in appointments %}
+                        <tr>
+                            <td>{{ appt.date.strftime('%Y-%m-%d %H:%M') if appt.date else 'N/A' }}</td>
+                            {% if current_user.role != 'doctor' %}
+                            <td>
+                                {% if appt.doctor %}
+                                    {{ appt.doctor.name }}
+                                {% else %}
+                                    Doctor #{{ appt.doc_id }}
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                            <td>
+                                {% if appt.patient %}
+                                    {{ appt.patient.name }}
+                                {% else %}
+                                    Patient #{{ appt.patient_id }}
+                                {% endif %}
+                            </td>
+                            <td>{{ appt.name }}</td>
+                            <td>
+                                <span class="badge badge-{{ 
+                                    'success' if appt.status == 'Completed' 
+                                    else 'warning' if appt.status == 'Scheduled' 
+                                    else 'danger' if appt.status == 'Cancelled'
+                                    else 'secondary' }}">
+                                    {{ appt.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('appointment.view_appointment', appt_id=appt.appt_id) }}" 
+                                   class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                {% if current_user.role == 'receptionist' and appt.status == 'Scheduled' %}
+                                <button class="btn btn-sm btn-warning cancel-btn" data-appointment-id="{{ appt.appt_id }}">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                                {% endif %}
+                                {% if current_user.role == 'doctor' and appt.status == 'Scheduled' %}
+                                <button class="btn btn-sm btn-success complete-btn" data-appointment-id="{{ appt.appt_id }}">
+                                    <i class="fas fa-check"></i> Complete
+                                </button>
+                                {% endif %}
+                                {% if current_user.role == 'receptionist' %}
+                                <button class="btn btn-sm btn-primary edit-btn" data-appointment-id="{{ appt.appt_id }}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                {% if current_user.role == 'doctor' %}
+                    You don't have any appointments scheduled.
+                {% else %}
+                    No appointments found.
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Appointment Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Appointment</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this appointment?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No, Keep It</button>
+                <button type="button" class="btn btn-warning" onclick="confirmCancel()">Yes, Cancel It</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let appointmentIdToCancel = null;
+let appointmentIdToComplete = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners for cancel buttons
+    document.querySelectorAll('.cancel-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            appointmentIdToCancel = this.getAttribute('data-appointment-id');
+            document.getElementById('cancelModal').modal('show');
+        });
+    });
+    
+    // Add event listeners for complete buttons
+    document.querySelectorAll('.complete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            completeAppointment(this.getAttribute('data-appointment-id'));
+        });
+    });
+    
+    // Add event listeners for edit buttons
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            editAppointment(this.getAttribute('data-appointment-id'));
+        });
+    });
+});
+
+function filterAppointments() {
+    // Implementation for filtering appointments
+    const status = document.getElementById('statusFilter').value;
+    const date = document.getElementById('dateFilter').value;
+    const doctor = document.getElementById('doctorFilter').value;
+    
+    // Build URL with filters
+    let url = window.location.pathname;
+    let params = new URLSearchParams();
+    
+    if (status) params.append('status', status);
+    if (date) params.append('date', date);
+    if (doctor) params.append('doctor', doctor);
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+    
+    window.location.href = url;
+}
+
+function confirmCancel() {
+    if (appointmentIdToCancel) {
+        // Submit form to cancel appointment
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/appointments/${appointmentIdToCancel}/cancel`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function completeAppointment(id) {
+    appointmentIdToComplete = id;
+    // Submit form to complete appointment
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/appointments/${appointmentIdToComplete}/complete`;
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function editAppointment(id) {
+    // Redirect to edit page or show edit modal
+    window.location.href = `/appointments/${id}/edit`;
+}
+</script>
+{% endblock %}

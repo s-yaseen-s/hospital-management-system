@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Appointment Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Appointment Details</h2>
+                <a href="{{ url_for('appointment.schedule') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Appointments
+                </a>
+            </div>
+            
+            <!-- Appointment Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Appointment Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Appointment ID:</strong> #{{ appointment.appt_id }}</p>
+                            <p><strong>Type:</strong> {{ appointment.name }}</p>
+                            <p><strong>Date & Time:</strong> {{ appointment.date.strftime('%Y-%m-%d %H:%M') if appointment.date else 'N/A' }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge badge-{{ 
+                                    'success' if appointment.status == 'Completed' 
+                                    else 'warning' if appointment.status == 'Scheduled' 
+                                    else 'danger' if appointment.status == 'Cancelled'
+                                    else 'secondary' }}">
+                                    {{ appointment.status }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Patient:</strong> 
+                                {% if appointment.patient %}
+                                    {{ appointment.patient.name }}
+                                {% else %}
+                                    Patient #{{ appointment.patient_id }}
+                                {% endif %}
+                            </p>
+                            <p><strong>Doctor:</strong> 
+                                {% if appointment.doctor %}
+                                    {{ appointment.doctor.name }} ({{ appointment.doctor.specialty }})
+                                {% else %}
+                                    Doctor #{{ appointment.doc_id }}
+                                {% endif %}
+                            </p>
+                            <p><strong>Receptionist:</strong> 
+                                {% if appointment.receptionist %}
+                                    {{ appointment.receptionist.name }}
+                                {% else %}
+                                    Receptionist #{{ appointment.rec_id }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Patient Details -->
+            {% if appointment.patient %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Patient Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Name:</strong> {{ appointment.patient.name }}</p>
+                            <p><strong>Phone:</strong> {{ appointment.patient.phone }}</p>
+                            <p><strong>Age:</strong> {{ appointment.patient.age }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Date of Birth:</strong> {{ appointment.patient.date_of_birth }}</p>
+                            <p><strong>Address:</strong> {{ appointment.patient.street }}, {{ appointment.patient.city }}</p>
+                            <p><strong>Previous Conditions:</strong> {{ appointment.patient.previous_conditions or 'None' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if current_user.role == 'doctor' and appointment.status == 'Scheduled' %}
+                    <form method="POST" action="{{ url_for('appointment.update_status', appt_id=appointment.appt_id) }}" class="d-inline">
+                        <input type="hidden" name="status" value="Completed">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Mark as Completed
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if current_user.role == 'receptionist' and appointment.status == 'Scheduled' %}
+                    <form method="POST" action="{{ url_for('receptionist.cancel_appointment', appt_id=appointment.appt_id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to cancel this appointment?')">
+                            <i class="fas fa-times"></i> Cancel Appointment
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if current_user.role == 'doctor' %}
+                    <a href="{{ url_for('doctor.view_patient', patient_id=appointment.patient_id) }}" class="btn btn-info">
+                        <i class="fas fa-user"></i> View Patient Record
+                    </a>
+                    {% endif %}
+                    
+                    {% if current_user.role == 'doctor' and appointment.status == 'Completed' %}
+                    <a href="{{ url_for('doctor.new_prescription') }}" class="btn btn-primary">
+                        <i class="fas fa-prescription"></i> Add Prescription
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

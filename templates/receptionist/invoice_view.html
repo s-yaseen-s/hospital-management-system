@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Invoice Details</h2>
+                <a href="{{ url_for('billing.invoices') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Invoices
+                </a>
+            </div>
+            
+            <!-- Invoice Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Invoice Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Invoice ID:</strong> #{{ invoice.inv_id }}</p>
+                            <p><strong>Patient:</strong> 
+                                {% if invoice.patient %}
+                                    {{ invoice.patient.name }}
+                                {% else %}
+                                    Patient #{{ invoice.patient_id }}
+                                {% endif %}
+                            </p>
+                            <p><strong>Date:</strong> {{ invoice.date.strftime('%Y-%m-%d') if invoice.date else 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Total Amount:</strong> ${{ "%.2f"|format(invoice.amount) }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge badge-{{ 
+                                    'success' if invoice.status == 'Paid' 
+                                    else 'warning' if invoice.status == 'Partial'
+                                    else 'info' }}">
+                                    {{ invoice.status }}
+                                </span>
+                            </p>
+                            <p><strong>Balance:</strong> ${{ "%.2f"|format(balance) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment History -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Payment History</h5>
+                    {% if invoice.status != 'Paid' %}
+                    <button class="btn btn-primary" data-toggle="modal" data-target="#paymentModal">
+                        <i class="fas fa-money-bill"></i> Add Payment
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if payments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Payment ID</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>#{{ payment.pay_id }}</td>
+                                    <td>${{ "%.2f"|format(payment.amount) }}</td>
+                                    <td>{{ payment.date.strftime('%Y-%m-%d %H:%M') if payment.date else 'N/A' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p><strong>Total Paid:</strong> ${{ "%.2f"|format(total_paid) }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Remaining Balance:</strong> ${{ "%.2f"|format(balance) }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        No payments recorded for this invoice yet.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Patient Details -->
+            {% if invoice.patient %}
+            <div class="card">
+                <div class="card-header">
+                    <h5>Patient Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Name:</strong> {{ invoice.patient.name }}</p>
+                            <p><strong>Phone:</strong> {{ invoice.patient.phone }}</p>
+                            <p><strong>Age:</strong> {{ invoice.patient.age }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Address:</strong> {{ invoice.patient.street }}, {{ invoice.patient.city }}</p>
+                            <p><strong>Date of Birth:</strong> {{ invoice.patient.date_of_birth }}</p>
+                            <p><strong>Previous Conditions:</strong> {{ invoice.patient.previous_conditions or 'None' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Record Payment</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('billing.add_payment', inv_id=invoice.inv_id) }}">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="payment_amount">Payment Amount ($):</label>
+                        <input type="number" name="amount" id="payment_amount" class="form-control" 
+                               step="0.01" min="0.01" max="{{ balance }}" required>
+                        <small class="form-text text-muted">Maximum amount: ${{ "%.2f"|format(balance) }}</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default payment amount to the remaining balance
+    const paymentInput = document.getElementById('payment_amount');
+    if (paymentInput) {
+        paymentInput.value = '{{ "%.2f"|format(balance) }}';
+    }
+});
+</script>
+{% endblock %}

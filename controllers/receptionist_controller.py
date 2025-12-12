@@ -47,9 +47,26 @@ def add_appointment():
     
     receptionist = Receptionist.query.filter_by(user_id=current_user.user_id).first()
     
+    # Convert string date to datetime object
+    if appointment_date:
+        try:
+            # Handle different date formats
+            if 'T' in appointment_date:
+                # Format: 2025-12-13T18:51
+                appointment_datetime = datetime.strptime(appointment_date, '%Y-%m-%dT%H:%M')
+            else:
+                # Format: 2025-12-13
+                appointment_datetime = datetime.strptime(appointment_date, '%Y-%m-%d')
+        except ValueError:
+            flash('Invalid date format', 'error')
+            return redirect(url_for('receptionist.appointments'))
+    else:
+        flash('Date is required', 'error')
+        return redirect(url_for('receptionist.appointments'))
+    
     appointment = Appointment(
         name=name,
-        date=appointment_date,
+        date=appointment_datetime,
         patient_id=patient_id,
         doc_id=doc_id,
         rec_id=receptionist.rec_id

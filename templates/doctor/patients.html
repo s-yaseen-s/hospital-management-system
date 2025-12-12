@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}My Patients{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>My Patients</h2>
+            <p class="text-muted">Patients you have appointments with</p>
+            
+            {% if patients %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Age</th>
+                            <th>City</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients %}
+                        <tr>
+                            <td>{{ patient.name }}</td>
+                            <td>{{ patient.phone }}</td>
+                            <td>{{ patient.age }}</td>
+                            <td>{{ patient.city }}</td>
+                            <td>
+                                <a href="{{ url_for('doctor.view_patient', patient_id=patient.patient_id) }}" 
+                                   class="btn btn-sm btn-primary">View Details</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                You don't have any patients assigned yet. Patients will appear here when you have appointments with them.
+            </div>
+            {% endif %}
+            
+            <div class="mt-3">
+                <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -33,7 +33,7 @@ def create_invoice():
     receptionist = Receptionist.query.filter_by(user_id=current_user.user_id).first()
     
     invoice = Invoice(
-        amount=amount,
+        amount=float(amount),
         patient_id=patient_id,
         rec_id=receptionist.rec_id,
         date=datetime.utcnow()
@@ -71,7 +71,7 @@ def add_payment(inv_id):
     amount = request.form.get('amount')
     
     payment = Payment(
-        amount=amount,
+        amount=float(amount),
         inv_id=inv_id,
         date=datetime.utcnow()
     )
@@ -81,7 +81,7 @@ def add_payment(inv_id):
         total_paid = sum(p.amount for p in invoice.payments) + float(amount)
         if total_paid >= invoice.amount:
             invoice.status = 'Paid'
-        else:
+        elif total_paid > 0:
             invoice.status = 'Partial'
     
     db.session.add(payment)

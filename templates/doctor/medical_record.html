@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Medical Record{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Patient Medical Record</h2>
+                <a href="{{ url_for('doctor.patients') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Patients
+                </a>
+            </div>
+            
+            <!-- Patient Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Patient Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Name:</strong> {{ patient.name }}</p>
+                            <p><strong>Phone:</strong> {{ patient.phone }}</p>
+                            <p><strong>Age:</strong> {{ patient.age }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Date of Birth:</strong> {{ patient.date_of_birth }}</p>
+                            <p><strong>Address:</strong> {{ patient.street }}, {{ patient.city }}</p>
+                            <p><strong>Previous Conditions:</strong> {{ patient.previous_conditions or 'None' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Medical Record -->
+            {% if medical_record %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Medical Record</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Record ID:</strong> {{ medical_record.record_id }}</p>
+                    <p><strong>Created:</strong> {{ medical_record.created_date or 'N/A' }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Appointments -->
+            {% if appointments %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Appointments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in appointments %}
+                                <tr>
+                                    <td>{{ appt.date.strftime('%Y-%m-%d %H:%M') if appt.date else 'N/A' }}</td>
+                                    <td>{{ appt.name }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ 'success' if appt.status == 'Completed' else 'warning' if appt.status == 'Scheduled' else 'danger' }}">
+                                            {{ appt.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Prescriptions -->
+            {% if prescriptions %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Prescriptions</h5>
+                </div>
+                <div class="card-body">
+                    {% for prescription in prescriptions %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <p><strong>Prescription #{{ prescription.script_id }}</strong></p>
+                        <p>{{ prescription.instructions }}</p>
+                        <small class="text-muted">Date: {{ prescription.date.strftime('%Y-%m-%d') if prescription.date else 'N/A' }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Lab Tests -->
+            {% if lab_tests %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Lab Tests</h5>
+                </div>
+                <div class="card-body">
+                    {% for test in lab_tests %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <p><strong>{{ test.name }}</strong></p>
+                        <p>Result: {{ test.result }}</p>
+                        <small class="text-muted">Date: {{ test.date.strftime('%Y-%m-%d') if test.date else 'N/A' }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Action Buttons -->
+            <div class="mt-4">
+                <a href="{{ url_for('doctor.new_prescription') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Prescription
+                </a>
+                <a href="#" class="btn btn-info">
+                    <i class="fas fa-vial"></i> Order Lab Test
+                </a>
+                <a href="#" class="btn btn-success">
+                    <i class="fas fa-notes-medical"></i> Add Notes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
