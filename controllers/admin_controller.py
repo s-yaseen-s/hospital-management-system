@@ -145,6 +145,22 @@ def add_department():
     flash('Department added successfully!', 'success')
     return redirect(url_for('admin.departments'))
 
+@admin_bp.route('/department/<int:dept_id>/toggle-status', methods=['POST'])
+@login_required
+@admin_required
+def toggle_department_status(dept_id):
+    department = Department.query.get_or_404(dept_id)
+    
+    if department.status == 'Active':
+        department.status = 'Inactive'
+        flash(f'Department "{department.name}" deactivated successfully!', 'info')
+    else:
+        department.status = 'Active'
+        flash(f'Department "{department.name}" activated successfully!', 'success')
+    
+    db.session.commit()
+    return redirect(url_for('admin.departments'))
+
 @admin_bp.route('/reports')
 @login_required
 @admin_required

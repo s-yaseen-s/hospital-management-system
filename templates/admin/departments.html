@@ -19,7 +19,7 @@
     </div>
     <div class="stat-card">
         <h3>Total Doctors</h3>
-        <div class="number">{{ departments|sum(attribute='doctors_count') if departments else 0 }}</div>
+        <div class="number">{{ departments|map(attribute='doctors')|map('length')|sum if departments else 0 }}</div>
     </div>
 </div>
 
@@ -52,7 +52,7 @@
                     <td>
                         <strong>{{ dept.name }}</strong>
                     </td>
-                    <td>{{ dept.description[:100] }}{% if dept.description|length > 100 %}...{% endif %}</td>
+                    <td>{{ dept.description[:100] if dept.description else 'No description' }}{% if dept.description and dept.description|length > 100 %}...{% endif %}</td>
                     <td>
                         {% if dept.head_doctor %}
                             Dr. {{ dept.head_doctor.name }}
@@ -61,7 +61,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <span class="badge badge-primary">{{ dept.doctors_count or 0 }}</span>
+                        <span class="badge badge-primary">{{ dept.doctors|length }}</span>
                     </td>
                     <td>
                         <span class="badge badge-{{ 

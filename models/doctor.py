@@ -9,7 +9,7 @@ class Doctor(db.Model):
     dept_id = db.Column(db.Integer, db.ForeignKey('department.dept_id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user_account.user_id'))
     
-    department = db.relationship('Department', back_populates='doctors')
+    department = db.relationship('Department', back_populates='doctors', foreign_keys=[dept_id])
     appointments = db.relationship('Appointment', backref='doctor', lazy=True)
     prescriptions = db.relationship('Prescription', backref='doctor', lazy=True)
     lab_tests = db.relationship('LabTest', backref='doctor', lazy=True)
